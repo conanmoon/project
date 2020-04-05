@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <!-- Webpage Title -->
+    <title>Word Analyzer!</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+    <script>
+        $(document).ready(function () {
+            $('#cards-box').html('');
+            listing();
+        });
+
+        function readFile(input) {
+            let file = input.files[0];
+
+            let reader = new FileReader();
+
+            reader.readAsText(file);
+
+            reader.onload = function () {
+                let read_text = console.log(stripHtml(reader.result));
+            };
+
+            reader.onerror = function () {
+                console.log(reader.error);
+            };
+
+        }
+
+        window.onload = function () {
+            var fileInput = document.getElementById('myfile');
+            var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+            fileInput.addEventListener('change', function (e) {
+                var file = fileInput.files[0];
+                var textType = /text.*/;
+
+                if (file.type.match(textType)) {
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+                        fileDisplayArea.innerText = reader.result;
+                    }
+
+                    reader.readAsText(file);
+                } else {
+                    fileDisplayArea.innerText = "File not supported!"
+                }
+            });
+        }
+
+        function listing() {
+            $.ajax({
+                type: "GET",
+                url: "/words",
+                data: {},
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        document.getElementById("myfile").value;
+
+                    }
+                }
+            })
+        }
+
+        function toSave() {
+            var val_text = $('#myfile').val();
+
+            $.ajax({
+                type: 'POST',
+                url: "/words",
+                data: {
+                    'text': val_text
+                    
+                },
+                dataType: "json"
+            })
+        }
+        /**
+ * Returns the text from a HTML string
+ * 
+ * @param {html} String The html string
+ */
+        function stripHtml(html) {
+            // Create a new div element
+            var temporalDivElement = document.createElement("div");
+            // Set the HTML content with the providen
+            temporalDivElement.innerHTML = html;
+            // Retrieve the text property of the element (cross-browser support)
+            return temporalDivElement.textContent || temporalDivElement.innerText || "";
+        }
+
+        function posting() {
+            $.ajax({
+                type: "POST", // POST 방식으로 요청하겠다.
+                url: "/words", // /words라는 url에 요청하겠다.
+                data: { 'write_file': input }, // 데이터를 주는 방법
+                success: function (response) { // 성공하면
+                    if (response['result'] == 'success') {
+                        let texts = response['text'];
+                    }
+                }
+            })
+        }
+    </script>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: 'Stylish', sans-serif;
+        }
+
+        .wrap {
+            width: 900px;
+            margin: auto;
+            position: fixed;
+            top: 25%;
+            bottom: 25%;
+            left: 10%;
+            right: 10%;
+        }
+
+        .jumbotron {
+            color: black;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .text_1 {
+            color: blue;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="jumbotron">
+            <h1 class="display-4">Word Analyzer</h1>
+            <p class="lead">Find out the trend in your word uses on your document!</p>
+            <hr class="my-4">
+            <p class="lead">
+                <label class="text_1" for="myfile">Start your analysis: </label>
+                <input type="file" onchange="readFile(this)" id="myfile" name="myfile">
+                <pre id="fileDisplayArea"><pre>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
