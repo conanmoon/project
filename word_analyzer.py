@@ -15,12 +15,14 @@ def home():
 
 @app.route('/words', methods=['GET'])
 def listing():
+    
     return jsonify({'result':'success'})
 
 ## API 역할을 하는 부분
 @app.route('/words', methods=['POST'])
 def saving():
-    return jsonify({'result': 'success'})
+    read_text = request.form['write_text']
+    return jsonify({'result': 'success', 'texts': read_text})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)

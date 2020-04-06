@@ -79,6 +79,15 @@
                 success: function (response) {
                     if (response['result'] == 'success') {
                         document.getElementById("myfile").value;
+                        function reqListener() {
+                            let read_text = console.log(this.responseText);
+                            
+                        }
+
+                        var oReq = new XMLHttpRequest();
+                        oReq.addEventListener("load", reqListener);
+                        oReq.open("GET", "/words");
+                        oReq.send();
 
                     }
                 }
