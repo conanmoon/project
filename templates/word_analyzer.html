@@ -28,7 +28,7 @@
 
     <script>
         $(document).ready(function () {
-            $('#cards-box').html('');
+            $('#fileDisplayArea').html('');
             listing();
         });
 
@@ -38,9 +38,21 @@
             let reader = new FileReader();
 
             reader.readAsText(file);
+            // let texts = $('#fileDisplayArea').val();
 
             reader.onload = function () {
-                let read_text = console.log(stripHtml(reader.result));
+                let texts = console.log(stripHtml(reader.result));
+                // posting(texts);
+                // $.ajax({
+                //     type: "POST", // POST 방식으로 요청하겠다.
+                //     url: "/words", // /words라는 url에 요청하겠다.
+                //     data: { 'write_text': texts }, // 데이터를 주는 방법
+                //     success: function (response) { // 성공하면
+                //         if (response['result'] == 'success') {
+                //             listing(texts)
+                //         }
+                //     }
+                // })
             };
 
             reader.onerror = function () {
@@ -71,14 +83,14 @@
             });
         }
 
-        function toSave() {
+        function toSave(texts) {
             var val_text = $('#myfile').val();
 
             $.ajax({
                 type: 'POST',
                 url: "/words",
                 data: {
-                    'text': val_text
+                    'write_text': texts
 
                 },
                 dataType: "json"
@@ -98,12 +110,12 @@
             return temporalDivElement.textContent || temporalDivElement.innerText || "";
         }
 
-        function posting() {
-            let texts = $('#fileDisplayArea').val();
+        function posting(texts) {
+            // let texts = $('#fileDisplayArea').val();
             $.ajax({
                 type: "POST", // POST 방식으로 요청하겠다.
                 url: "/words", // /words라는 url에 요청하겠다.
-                data: {write_text: texts}, // 데이터를 주는 방법
+                data: { 'write_text': texts }, // 데이터를 주는 방법
                 success: function (response) { // 성공하면
                     if (response['result'] == 'success') {
                         response['result']
@@ -112,9 +124,9 @@
             })
         }
 
-        function saving() {
+        function saving(texts) {
             // 1. bring the text
-            let texts = $('#fileDisplayArea').val();
+            // let texts = $('#fileDisplayArea').val();
 
             // 2. 입력하지 않았을 경우 alert를 띄웁니다.
             if (texts == '') {
@@ -138,20 +150,19 @@
             })
         }
 
-        function listing() {
-            let texts = $('#fileDisplayArea').val();
+        function listing(texts) {
+            // let texts = $('#fileDisplayArea').val();
             $.ajax({
                 type: "GET",
                 url: "/words",
-                data: {},
+                data: { write_text: texts },
                 success: function (response) {
                     if (response['result'] == 'success') {
                         document.getElementById("myfile").value;
+                        let texts = response['texts']
                         function reqListener() {
-                            let read_text = console.log(this.responseText);
-                            for (let i = 0; i < texts.length; i++) {
-                                posting(texts[i]['texts']);
-                            }
+                            let texts = console.log(this.responseText);
+
                         }
 
                         var oReq = new XMLHttpRequest();

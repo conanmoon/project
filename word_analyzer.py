@@ -46,15 +46,19 @@ def saving():
        'texts': read_text,
     }
     # texts에 text 저장하기
+    # text_1 =
     db.texts.insert_one(text)
+    # text_2 = db.texts.find_one({'texts': text_1})
+    # texts = db.texts.update_one({'texts': text},{'$set':{'texts':text_2}})
     return jsonify({'result': 'success'})
 
 @app.route('/words', methods=['GET'])
 def listing():
-    # r = requests.get('http://0.0.0.0:5000/')
     # rjson = r.json()
+    read_text = request.args.get('write_text')
+    print(read_text)
     texts = list(db.texts.find({},{'_id':0}))
-    return jsonify({'result':'success', 'texts': texts})
+    return jsonify({'result':'success', 'texts': texts, 'read_text': read_text})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
