@@ -30,10 +30,12 @@ db = client.dbsparta                      # 'dbsparta'라는 이름의 db를 만
 #         # a의 text를 찍어본다.
 #         print (a_tag.text)
 
+from selenium import webdriver
+
 ## HTML을 주는 부분
 @app.route('/')
 def home():
-   return render_template('word_analyzer.html')
+   return render_template('word_analyzer_2.html')
 
 ## API 역할을 하는 부분
 @app.route('/words', methods=['POST'])
@@ -58,7 +60,14 @@ def listing():
     read_text = request.args.get('write_text')
     print(read_text)
     texts = list(db.texts.find({},{'_id':0}))
-    return jsonify({'result':'success', 'texts': texts, 'read_text': read_text})
+    return jsonify({'result':'success', 'texts': texts})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
+
+wd = webdriver.chrome()
+wd.get("http://0.0.0.0:5000/")
+wd.execute_script("return 5")
+wd.execute_script("return true")
+wd.execute_script("return {foo: 'bar'}")
+wd.execute_script("return foobar()")
