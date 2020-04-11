@@ -1,5 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 import requests
+
+import re
+
+from collections import Counter
 app = Flask(__name__)
 
 import requests
@@ -37,16 +41,47 @@ from selenium import webdriver
 def home():
    return render_template('word_analyzer_2.html')
 
+def remove_multiple_strings(read_text, toRemove):
+    for x in toRemove:
+        read_text = read_text.replace(x, ' ')
+    return read_text
+
+def split_special(x, toRemove):
+    for x in toRemove:
+        x = x.split(x)
+    return x
+
 ## API 역할을 하는 부분
 @app.route('/words', methods=['POST'])
 def saving():
     # read_text = request.form['write_text']
     read_text = request.form['write_text']
-    print(read_text)
+    read_text = read_text.lower()
+    # print(read_text)
     # DB에 삽입할 text 만들기
+    toRemove = ["/", "-", ".", "~", ":", "&", "=", "-", "*", "!", "(", ")", ",", "\"", "\n"]
+    read_text = remove_multiple_strings(read_text, toRemove)
+    read_text_list = read_text.split(" ")
+    read_text_list = list(filter(None, read_text_list))
+    total_count = len(read_text_list)
+    print(total_count)
+    word_calculated_list = []
+    for word in [ele for ind, ele in enumerate(read_text_list, 1) if ele not in read_text_list[ind:]]:
+        word_count = read_text_list.count(word)
+        word_percentage = round(100*(read_text_list.count(word)/total_count), 2)
+        print("{} {} {}%".format(word, word_count, word_percentage))
+        word_calculated_dict = {'word': word, 'word_count': word_count, 'word_percentage': word_percentage}
+        word_calculated_list.append(word_calculated_dict)
+
+    # my_dict = {i: read_text.count(i) for i in read_text}
+    # word_count = dict(Counter(read_text))
+    # read_text = list(set(read_text).difference(set(toRemove)))
     text = {
-       'texts': read_text,
+       'texts': read_text_list,
+        'total_count': total_count,
+        'word_stat': word_calculated_list
     }
+
     # texts에 text 저장하기
     # text_1 =
     db.texts.insert_one(text)
@@ -57,17 +92,17 @@ def saving():
 @app.route('/words', methods=['GET'])
 def listing():
     # rjson = r.json()
-    read_text = request.args.get('write_text')
-    print(read_text)
+    # read_text = request.args.get('write_text')
+    # print(read_text)
     texts = list(db.texts.find({},{'_id':0}))
     return jsonify({'result':'success', 'texts': texts})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5000, debug=True)
 
-wd = webdriver.chrome()
-wd.get("http://0.0.0.0:5000/")
-wd.execute_script("return 5")
-wd.execute_script("return true")
-wd.execute_script("return {foo: 'bar'}")
-wd.execute_script("return foobar()")
+# wd = webdriver.chrome()
+# wd.get("http://0.0.0.0:5000/")
+# wd.execute_script("return 5")
+# wd.execute_script("return true")
+# wd.execute_script("return {foo: 'bar'}")
+# wd.execute_script("return foobar()")
