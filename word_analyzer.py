@@ -87,7 +87,7 @@ def saving():
     db.texts.insert_one(text)
     # text_2 = db.texts.find_one({'texts': text_1})
     # texts = db.texts.update_one({'texts': text},{'$set':{'texts':text_2}})
-    return jsonify({'result': 'success'})
+    return jsonify({'result': 'success', 'stats': word_calculated_list}) # returning the word stats
 
 @app.route('/words', methods=['GET'])
 def listing():
