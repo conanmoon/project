@@ -1,5 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import requests
+from collections import OrderedDict
+from operator import itemgetter
 
 import re
 
@@ -46,10 +48,13 @@ def remove_multiple_strings(read_text, toRemove):
         read_text = read_text.replace(x, ' ')
     return read_text
 
-def split_special(x, toRemove):
-    for x in toRemove:
-        x = x.split(x)
-    return x
+# def split_special(x, toRemove):
+#     for x in toRemove:
+#         x = x.split(x)
+#     return x
+
+def sort_key(d):
+    return d['word_count']
 
 ## API 역할을 하는 부분
 @app.route('/words', methods=['POST'])
@@ -76,6 +81,8 @@ def saving():
     # my_dict = {i: read_text.count(i) for i in read_text}
     # word_count = dict(Counter(read_text))
     # read_text = list(set(read_text).difference(set(toRemove)))
+    # word_calculated_list = sorted(word_calculated_list, key=sort_key, reverse=True)
+    word_calculated_list = sorted(word_calculated_list, key=itemgetter('word_count'), reverse=True)
     text = {
        'texts': read_text_list,
         'total_count': total_count,
