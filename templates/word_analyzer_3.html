@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <!-- Webpage Title -->
+    <title>Word Analyzer!</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+    <!--import bar chart-->
+    <!-- Load plotly.js into the DOM -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+    <script>
+
+        $(document).ready(function () {
+            $('#fileDisplayArea').html('');
+            listing();
+        });
+
+        sort(function (a, b) {
+            return b.word_count - a.word_count;
+        });
+
+        function wordstat(x) {
+            for (let i = 0; i < x.length; i++) {
+                let word = x[i]['word']
+                let word_count = x[i]['word_count']
+                let word_percentage = x[i]['word_percentage']
+                let temp_html = '<tr>\
+                                  <td>'+ word + '</td>\
+                                  <td>'+ word_count + '</td>\
+                                  <td>'+ word_percentage + '</td>\
+                                </tr>'
+                let wordlist = $('#names-q1').append(temp_html);
+            }
+            return x
+            // return x
+        }
+        function readFile(input) {
+            let file = input.files[0];
+
+            let reader = new FileReader();
+
+            reader.readAsText(file);
+            // let texts = $('#fileDisplayArea').val();
+
+            reader.onload = function () {
+                let texts = stripHtml(reader.result);
+                console.log(texts)
+                // 위 변수에 저장이 안되는 것
+                // listing();
+                $.ajax({
+                    type: "POST", // POST 방식으로 요청하겠다.
+                    url: "/words", // /words라는 url에 요청하겠다.
+                    data: { write_text: texts }, // 데이터를 주는 방법 'write_text': texts
+                    success: function (response) { // 성공하면
+                        if (response['result'] == 'success') {
+                            response['result']
+                            console.log(response)
+                            let stats = response['stats']
+                            // let stats = texts['word_st']
+                            wordstat(stats)
+                            // for (let i = 0; i < stats.length; i++) {
+                            //     let word = stats[i]['word']
+                            //     let word_count = stats[i]['word_count']
+                            //     let word_percentage = stats[i]['word_percentage']
+                            //     let temp_html = '<tr>\
+                            //       <td>'+ word + '</td>\
+                            //       <td>'+ word_count + '</td>\
+                            //       <td>'+ word_percentage + '</td>\
+                            //     </tr>'
+                            //     $('#names-q1').append(temp_html);
+                            // }
+                            // bar_chart(stats)
+                            // barchart(stats)
+                        }
+                    }
+                })
+                $.ajax({
+                    type: "GET", // POST 방식으로 요청하겠다.
+                    url: "/words", // /words라는 url에 요청하겠다.
+                    data: {}, // 데이터를 주는 방법
+                    success: function (response) { // 성공하면
+                        if (response['result'] == 'success') {
+                            response['result']
+                        }
+                    }
+                })
+            };
+
+            reader.onerror = function () {
+                console.log(reader.error);
+            };
+
+        }
+
+        function stripHtml(html) {
+            // Create a new div element
+            var temporalDivElement = document.createElement("div");
+            // Set the HTML content with the providen
+            temporalDivElement.innerHTML = html;
+            // Retrieve the text property of the element (cross-browser support)
+            return temporalDivElement.textContent || temporalDivElement.innerText || "";
+        }
+
+
+        function listing(texts) {
+            // let texts = $('#fileDisplayArea').val();
+            // 
+            $.ajax({
+                type: "GET",
+                url: "/words",
+                data: { write_text: texts },
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        document.getElementById("myfile").value;
+                        let texts = response['texts']
+                        let stats = texts['word_stat']
+                        function reqListener() {
+                            console.log(this.responseText);
+                            // readFile()
+                        }
+
+                        var oReq = new XMLHttpRequest();
+                        oReq.addEventListener("load", reqListener);
+                        oReq.open("GET", "/words");
+                        oReq.send();
+
+                    }
+                }
+            })
+            // 1. 리뷰 목록을 서버에 요청하기
+            $.ajax({
+                type: "GET",
+                url: "/words",
+                data: {},
+                success: function (response) {
+                    // 2. 요청 성공 여부 확인하기
+                    if (response['result'] == 'success') {
+                        // let texts = response['texts']
+                        // let stats = texts['word_stat']
+                        let stats = response['stats']
+                        // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
+                        wordstat(stats)
+                        // for (let i = 0; i < stats.length; i++) {
+                        //     let word = stats[i]['word']
+                        //     let word_count = stats[i]['word_count']
+                        //     let word_percentage = stats[i]['word_percentage']
+                        //     let temp_html = '<tr>\
+                        //           <td>'+ word + '</td>\
+                        //           <td>'+ word_count + '</td>\
+                        //           <td>'+ word_percentage + '</td>\
+                        //         </tr>'
+                        //     $('#names-q1').append(temp_html);
+                        // }
+                        // bar_chart(stats)
+                        // barchart(stats)
+                    } else {
+                        alert('No data has been returned, please check if your data is valid.');
+                    }
+                }
+            })
+        }
+
+
+        // bar chart
+        function bar_chart(x) {
+
+            //Better to construct options first and then pass it as a parameter
+            // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
+
+            var options = {
+                animationEnabled: true,
+                title: {
+                    text: "Your Word Trends",
+                    fontColor: "Peru"
+                },
+                axisY: {
+                    tickThickness: 0,
+                    lineThickness: 0,
+                    valueFormatString: " ",
+                    gridThickness: 0
+                },
+                axisX: {
+                    tickThickness: 0,
+                    lineThickness: 0,
+                    labelFontSize: 8,
+                    labelFontColor: "Peru"
+                },
+                data: [{
+                    indexLabelFontSize: 8,
+                    toolTipContent: "<span style=\"color:#62C9C3\">{indexLabel}:</span> <span style=\"color:#CD853F\"><strong>{y}</strong></span>",
+                    indexLabelPlacement: "inside",
+                    indexLabelFontColor: "blue",
+                    indexLabelFontWeight: 1,
+                    indexLabelFontFamily: "Verdana",
+                    color: "#62C9C3",
+                    type: "bar",
+                    dataPoints: make_list(x)
+                }]
+            };
+
+            $("#chartContainer").CanvasJSChart(options);
+        }
+
+        function make_list(x) {
+            wordstat(x)
+            wordlist = []
+            for (let i = 0; i < x.length; i++) {
+                let word = x[i]['word']
+                let word_count = x[i]['word_count']
+                let word_percentage = x[i]['word_percentage']
+                let worddict = { 'a': word, 'b': word_count }
+                wordlist.push(worddict)
+            }
+            // return wordlist.sort(function (a, b){
+            //         return b.word_count - a.word_count
+            //     })
+            barchart(wordlist)
+        }
+
+        function barchart(x) {
+            google.charts.load('current', { packages: ['corechart', 'bar'] });
+            google.charts.setOnLoadCallback(drawBasic);
+            
+            function drawBasic(x) {
+                // for (i = 0; i < x.length; i++) {
+                    var data = google.visualization.arrayToDataTable([
+                        ['Words', 'Frequency'],
+                        [x['a'], x['b']]
+                    ]);
+
+                    var options = {
+                        title: 'Frequency of words',
+                        chartArea: { height: 'fit-content', width: '50%' },
+                        isStacked: true,
+                        hAxis: {
+                            title: 'Frequency',
+                            minValue: 0,
+                        },
+                        vAxis: {
+                            title: 'Words'
+                        }
+                    };
+                    var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+                    chart.draw(data, options);
+                // }
+            }
+        }
+    </script>
+
+
+    <style type="text/css">
+        * {
+            font-family: 'Stylish', sans-serif;
+        }
+
+        .wrap {
+            width: 80%;
+            height: 80%;
+            /* margin: auto; */
+            position: absolute;
+            top: 10%;
+            bottom: 10%;
+            left: 10%;
+            right: 10%;
+        }
+
+        .jumbotron {
+            color: black;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .text_1 {
+            color: blue;
+        }
+
+        .card {
+            top: auto;
+            left: 50%;
+            right: auto;
+            bottom: auto;
+            width: fit-content;
+            height: fit-content;
+        }
+
+        .container {
+            width: 500px;
+            height: 500px;
+        }
+
+        table {
+            border: 1px solid;
+            border-collapse: collapse;
+            bottom: 10%;
+        }
+
+        td,
+        th {
+            padding: 1px;
+            border: 1px solid;
+        }
+    </style>
+
+
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="jumbotron">
+            <h1 class="display-4">Word Analyzer</h1>
+            <p class="lead">Find out the trend in your word uses on your document!</p>
+            <hr class="my-4">
+            <p class="lead">
+                <label class="text_1" for="myfile">Start your analysis: </label>
+                <input type="file" onchange="readFile(this)" id="myfile" name="myfile">
+                <pre id="fileDisplayArea"><pre>
+            </p>
+        </div>
+        <div class="row">
+            <div class="col-sm">
+                <table>
+                    <thead>
+                      <tr>
+                        <td>Word</td>
+                        <td>Frequency</td>
+                        <td>Percentage</td>
+                      </tr>
+                    </thead>
+                    <tbody id="names-q1">
+                    </tbody>
+                  </table>
+            </div>
+            <div class="col-sm"> <!--height 2300em, 32000px-->
+                <div id="chart_div"></div>
+            </div>
+          </div>
+    </div>
+</body>
+
+</html>
