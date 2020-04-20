@@ -30,8 +30,6 @@
     <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
 
     <!--import bar chart-->
-    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
 
     <!--import word cloud-->
     <script src="https://www.amcharts.com/lib/4/core.js"></script>
@@ -238,7 +236,7 @@
                 let word = x[i]['word']
                 let word_count = x[i]['word_count']
                 let word_percentage = x[i]['word_percentage']
-                let worddict = { y: word_count, label: word_count, indexLabel: word }
+                let worddict = { y: word_percentage, label: word_count, indexLabel: word}
                 wordlist.push(worddict)
             }
             // return wordlist.sort(function (a, b){
@@ -406,6 +404,8 @@
             </div>
             <div class="col-sm"> <!--height 2300em, 32000px-->
                 <div id="chartContainer" style="height: 2000em; width: fit-content;"></div> 
+                <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+                <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
             </div>
             <div class="col-sm">
                 <div id="chartdiv"></div>

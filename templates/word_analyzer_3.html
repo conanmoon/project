@@ -30,9 +30,13 @@
     <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
 
     <!--import bar chart-->
-    <!-- Load plotly.js into the DOM -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
+    <!--import word cloud-->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/plugins/wordCloud.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
     <script>
 
@@ -41,9 +45,9 @@
             listing();
         });
 
-        sort(function (a, b) {
-            return b.word_count - a.word_count;
-        });
+        // sort(function (a, b) {
+        //     return b.word_count - a.word_count;
+        // });
 
         function wordstat(x) {
             for (let i = 0; i < x.length; i++) {
@@ -57,8 +61,8 @@
                                 </tr>'
                 let wordlist = $('#names-q1').append(temp_html);
             }
+            // return wordlist 
             return x
-            // return x
         }
         function readFile(input) {
             let file = input.files[0];
@@ -95,8 +99,8 @@
                             //     </tr>'
                             //     $('#names-q1').append(temp_html);
                             // }
-                            // bar_chart(stats)
-                            // barchart(stats)
+                            bar_chart(stats)
+                            wordcloud(stats)
                         }
                     }
                 })
@@ -177,54 +181,13 @@
                         //         </tr>'
                         //     $('#names-q1').append(temp_html);
                         // }
-                        // bar_chart(stats)
-                        // barchart(stats)
+                        bar_chart(stats)
+                        wordcloud(stats)
                     } else {
                         alert('No data has been returned, please check if your data is valid.');
                     }
                 }
             })
-        }
-
-
-        // bar chart
-        function bar_chart(x) {
-
-            //Better to construct options first and then pass it as a parameter
-            // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
-
-            var options = {
-                animationEnabled: true,
-                title: {
-                    text: "Your Word Trends",
-                    fontColor: "Peru"
-                },
-                axisY: {
-                    tickThickness: 0,
-                    lineThickness: 0,
-                    valueFormatString: " ",
-                    gridThickness: 0
-                },
-                axisX: {
-                    tickThickness: 0,
-                    lineThickness: 0,
-                    labelFontSize: 8,
-                    labelFontColor: "Peru"
-                },
-                data: [{
-                    indexLabelFontSize: 8,
-                    toolTipContent: "<span style=\"color:#62C9C3\">{indexLabel}:</span> <span style=\"color:#CD853F\"><strong>{y}</strong></span>",
-                    indexLabelPlacement: "inside",
-                    indexLabelFontColor: "blue",
-                    indexLabelFontWeight: 1,
-                    indexLabelFontFamily: "Verdana",
-                    color: "#62C9C3",
-                    type: "bar",
-                    dataPoints: make_list(x)
-                }]
-            };
-
-            $("#chartContainer").CanvasJSChart(options);
         }
 
         function make_list(x) {
@@ -234,42 +197,104 @@
                 let word = x[i]['word']
                 let word_count = x[i]['word_count']
                 let word_percentage = x[i]['word_percentage']
-                let worddict = { 'a': word, 'b': word_count }
+                let worddict = {"Word": Object(word), "Word_Count": word_count, "Word_Percentage": word_percentage}
                 wordlist.push(worddict)
             }
             // return wordlist.sort(function (a, b){
             //         return b.word_count - a.word_count
             //     })
-            barchart(wordlist)
+            return wordlist
         }
 
-        function barchart(x) {
+        function bar_chart(x) {
             google.charts.load('current', { packages: ['corechart', 'bar'] });
-            google.charts.setOnLoadCallback(drawBasic);
-            
-            function drawBasic(x) {
-                // for (i = 0; i < x.length; i++) {
-                    var data = google.visualization.arrayToDataTable([
-                        ['Words', 'Frequency'],
-                        [x['a'], x['b']]
-                    ]);
+            google.charts.setOnLoadCallback(drawMultSeries);
 
-                    var options = {
-                        title: 'Frequency of words',
-                        chartArea: { height: 'fit-content', width: '50%' },
-                        isStacked: true,
-                        hAxis: {
-                            title: 'Frequency',
-                            minValue: 0,
-                        },
-                        vAxis: {
-                            title: 'Words'
-                        }
-                    };
-                    var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-                    chart.draw(data, options);
-                // }
+            function drawMultSeries() {
+                var data = google.visualization.arrayToDataTable([
+                //     ['Word', 'Word_Count', 'Word_Percentage'],
+                    make_list(x)        
+                ]);
+
+                var options = {
+                    title: 'Word Frequency per Word',
+                    chartArea: { width: '50%' },
+                    hAxis: {
+                        title: 'Word Frequency',
+                        minValue: 0
+                    },
+                    vAxis: {
+                        title: 'Word'
+                    }
+                };
+
+                var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+                chart.draw(data, options);
             }
+        }
+
+        function make_list2(x) {
+            wordstat(x)
+            wordlist = []
+            for (let i = 0; i < x.length; i++) {
+                let word = x[i]['word']
+                let word_count = x[i]['word_count']
+                let word_percentage = x[i]['word_percentage']
+                let worddict = { "tag": word, "count": word_count }
+                wordlist.push(worddict)
+            }
+            // return wordlist.sort(function (a, b){
+            //         return b.word_count - a.word_count
+            //     })
+            return wordlist
+        }
+
+        function wordcloud(x) {
+            am4core.ready(function () {
+                // Themes begin
+                am4core.useTheme(am4themes_animated);
+                // Themes end
+
+                var chart = am4core.create("chartdiv", am4plugins_wordCloud.WordCloud);
+                chart.fontFamily = "Courier New";
+                var series = chart.series.push(new am4plugins_wordCloud.WordCloudSeries());
+                series.randomness = 0.1;
+                series.rotationThreshold = 0.5;
+
+                // wordstat(x)
+                series.data = make_list2(x)
+                // [{
+                //     "tag": word,
+                //     "count": word_count
+
+                // }];
+
+
+                series.dataFields.word = "tag";
+                series.dataFields.value = "count";
+
+                series.heatRules.push({
+                    "target": series.labels.template,
+                    "property": "fill",
+                    "min": am4core.color("#0000CC"),
+                    "max": am4core.color("#CC00CC"),
+                    "dataField": "value"
+                });
+                series.labels.template.url = "https://stackoverflow.com/questions/tagged/{word}";
+                series.labels.template.urlTarget = "_blank";
+                series.labels.template.tooltipText = "{word}: {value}";
+
+                var hoverState = series.labels.template.states.create("hover");
+                hoverState.properties.fill = am4core.color("#FF0000");
+
+                var subtitle = chart.titles.create();
+                subtitle.text = "";
+
+                var title = chart.titles.create();
+                title.text = "Word Cloud";
+                title.fontSize = 20;
+                title.fontWeight = "800";
+            });
         }
     </script>
 
@@ -318,12 +343,21 @@
             border: 1px solid;
             border-collapse: collapse;
             bottom: 10%;
+            top: auto;
+            left: auto;
+            bottom: auto;
+            right: auto;
         }
 
         td,
         th {
             padding: 1px;
             border: 1px solid;
+        }
+
+        #chartdiv {
+            width: 100%;
+            height: 1000px;
         }
     </style>
 
@@ -358,6 +392,9 @@
             </div>
             <div class="col-sm"> <!--height 2300em, 32000px-->
                 <div id="chart_div"></div>
+             </div>
+            <div class="col-sm">
+                <div id="chartdiv"></div>
             </div>
           </div>
     </div>
