@@ -30,7 +30,8 @@
     <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
 
     <!--import bar chart-->
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+
 
     <!--import word cloud-->
     <script src="https://www.amcharts.com/lib/4/core.js"></script>
@@ -45,21 +46,11 @@
             listing();
         });
 
-        // sort(function (a, b) {
-        //     return b.word_count - a.word_count;
-        // });
-
         function wordstat(x) {
             for (let i = 0; i < x.length; i++) {
                 let word = x[i]['word']
                 let word_count = x[i]['word_count']
                 let word_percentage = x[i]['word_percentage']
-                let temp_html = '<tr>\
-                                  <td>'+ word + '</td>\
-                                  <td>'+ word_count + '</td>\
-                                  <td>'+ word_percentage + '</td>\
-                                </tr>'
-                let wordlist = $('#names-q1').append(temp_html);
             }
             // return wordlist 
             return x
@@ -86,20 +77,49 @@
                             response['result']
                             console.log(response)
                             let stats = response['stats']
-                            // let stats = texts['word_st']
-                            wordstat(stats)
-                            // for (let i = 0; i < stats.length; i++) {
-                            //     let word = stats[i]['word']
-                            //     let word_count = stats[i]['word_count']
-                            //     let word_percentage = stats[i]['word_percentage']
-                            //     let temp_html = '<tr>\
-                            //       <td>'+ word + '</td>\
-                            //       <td>'+ word_count + '</td>\
-                            //       <td>'+ word_percentage + '</td>\
-                            //     </tr>'
-                            //     $('#names-q1').append(temp_html);
-                            // }
-                            bar_chart(stats)
+                            for (let i = 0; i < stats.length; i++) {
+                                let word = stats[i]['word']
+                                let word_count = stats[i]['word_count']
+                                let word_percentage = stats[i]['word_percentage']
+                                let temp_html = '<tr>\
+                                  <td>'+ word + '</td>\
+                                  <td>'+ word_count + '</td>\
+                                  <td>'+ word_percentage + '</td>\
+                                </tr>'
+                                $('#names-q1').append(temp_html);
+                            }
+                            var table = document.getElementById('dataTable');
+                            var json = []; // First row needs to be headers 
+                            var headers = [];
+                            for (var i = 0; i < table.rows[0].cells.length; i++) {
+                                headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi, '');
+                            }
+
+                            // Go through cells 
+                            for (var i = 1; i < table.rows.length; i++) {
+                                var tableRow = table.rows[i];
+                                var rowData = {};
+                                for (var j = 0; j < tableRow.cells.length; j++) {
+                                    rowData[headers[j]] = tableRow.cells[j].innerHTML;
+                                }
+
+                                json.push(rowData);
+                            }
+
+                            console.log(json);
+
+                            // Map JSON values back to label array
+                            var labels = json.map(function (e) {
+                                return e.word;
+                            });
+                            console.log(labels); // words
+
+                            // Map JSON values back to values array
+                            var values = json.map(function (e) {
+                                return e.frequency;
+                            });
+                            console.log(values); // word count
+                            var chart = BuildChart(labels, values, "Word Frequency");
                             wordcloud(stats)
                         }
                     }
@@ -119,8 +139,8 @@
             reader.onerror = function () {
                 console.log(reader.error);
             };
-
         }
+
 
         function stripHtml(html) {
             // Create a new div element
@@ -165,23 +185,52 @@
                 success: function (response) {
                     // 2. 요청 성공 여부 확인하기
                     if (response['result'] == 'success') {
-                        // let texts = response['texts']
-                        // let stats = texts['word_stat']
+                        response['result']
+                        console.log(response)
                         let stats = response['stats']
-                        // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
-                        wordstat(stats)
-                        // for (let i = 0; i < stats.length; i++) {
-                        //     let word = stats[i]['word']
-                        //     let word_count = stats[i]['word_count']
-                        //     let word_percentage = stats[i]['word_percentage']
-                        //     let temp_html = '<tr>\
-                        //           <td>'+ word + '</td>\
-                        //           <td>'+ word_count + '</td>\
-                        //           <td>'+ word_percentage + '</td>\
-                        //         </tr>'
-                        //     $('#names-q1').append(temp_html);
-                        // }
-                        bar_chart(stats)
+                        for (let i = 0; i < stats.length; i++) {
+                            let word = stats[i]['word']
+                            let word_count = stats[i]['word_count']
+                            let word_percentage = stats[i]['word_percentage']
+                            let temp_html = '<tr>\
+                                  <td>'+ word + '</td>\
+                                  <td>'+ word_count + '</td>\
+                                  <td>'+ word_percentage + '</td>\
+                                </tr>'
+                            $('#names-q1').append(temp_html);
+                        }
+                        var table = document.getElementById('dataTable');
+                        var json = []; // First row needs to be headers 
+                        var headers = [];
+                        for (var i = 0; i < table.rows[0].cells.length; i++) {
+                            headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi, '');
+                        }
+
+                        // Go through cells 
+                        for (var i = 1; i < table.rows.length; i++) {
+                            var tableRow = table.rows[i];
+                            var rowData = {};
+                            for (var j = 0; j < tableRow.cells.length; j++) {
+                                rowData[headers[j]] = tableRow.cells[j].innerHTML;
+                            }
+
+                            json.push(rowData);
+                        }
+
+                        console.log(json);
+
+                        // Map JSON values back to label array
+                        var labels = json.map(function (e) {
+                            return e.word;
+                        });
+                        console.log(labels); // words
+
+                        // Map JSON values back to values array
+                        var values = json.map(function (e) {
+                            return e.frequency;
+                        });
+                        console.log(values); // word count
+                        var chart = BuildChart(labels, values, "Word Frequency");
                         wordcloud(stats)
                     } else {
                         alert('No data has been returned, please check if your data is valid.');
@@ -190,47 +239,43 @@
             })
         }
 
-        function make_list(x) {
-            wordstat(x)
-            wordlist = []
-            for (let i = 0; i < x.length; i++) {
-                let word = x[i]['word']
-                let word_count = x[i]['word_count']
-                let word_percentage = x[i]['word_percentage']
-                let worddict = {"Word": Object(word), "Word_Count": word_count, "Word_Percentage": word_percentage}
-                wordlist.push(worddict)
-            }
-            // return wordlist.sort(function (a, b){
-            //         return b.word_count - a.word_count
-            //     })
-            return wordlist
-        }
+        // bar chart
+        //Better to construct options first and then pass it as a parameter
+        // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
 
-        function bar_chart(x) {
-            google.charts.load('current', { packages: ['corechart', 'bar'] });
-            google.charts.setOnLoadCallback(drawMultSeries);
-
-            function drawMultSeries() {
-                var data = google.visualization.arrayToDataTable([
-                //     ['Word', 'Word_Count', 'Word_Percentage'],
-                    make_list(x)        
-                ]);
-
-                var options = {
-                    title: 'Word Frequency per Word',
-                    chartArea: { width: '50%' },
-                    hAxis: {
-                        title: 'Word Frequency',
-                        minValue: 0
+        function BuildChart(labels, values, chartTitle) {
+            var data = {
+                labels: labels,
+                datasets: [{
+                    label: chartTitle, // Name the series
+                    data: values,
+                    backgroundColor: 'rgb(54, 162, 235)',
+                }],
+            };
+            var ctx = document.getElementById("myChart").getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: data,
+                options: {
+                    responsive: true, // Instruct chart JS to respond nicely.
+                    maintainAspectRatio: false, // Add to prevent default behavior of full-width/height 
+                    scales: {
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: ''
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: ''
+                            }
+                        }]
                     },
-                    vAxis: {
-                        title: 'Word'
-                    }
-                };
-
-                var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-                chart.draw(data, options);
-            }
+                }
+            });
+            return myChart;
         }
 
         function make_list2(x) {
@@ -378,12 +423,12 @@
         </div>
         <div class="row">
             <div class="col-sm">
-                <table>
+                <table class = "table" id="dataTable">
                     <thead>
                       <tr>
-                        <td>Word</td>
-                        <td>Frequency</td>
-                        <td>Percentage</td>
+                        <td id = "word">Word</td>
+                        <td id = "word_count">Frequency</td>
+                        <td id = "word_percentage">Percentage</td>
                       </tr>
                     </thead>
                     <tbody id="names-q1">
@@ -391,8 +436,10 @@
                   </table>
             </div>
             <div class="col-sm"> <!--height 2300em, 32000px-->
-                <div id="chart_div"></div>
-             </div>
+                <div class="chart" style="position: relative; height:2000em; width:100%">
+                    <canvas id="myChart"></canvas>
+                  </div>
+            </div>
             <div class="col-sm">
                 <div id="chartdiv"></div>
             </div>
