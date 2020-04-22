@@ -40,7 +40,6 @@
     <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
     <script>
-
         $(document).ready(function () {
             $('#fileDisplayArea').html('');
             listing();
@@ -68,6 +67,7 @@
                 console.log(texts)
                 // 위 변수에 저장이 안되는 것
                 // listing();
+                $('#names-q1').html('');
                 $.ajax({
                     type: "POST", // POST 방식으로 요청하겠다.
                     url: "/words", // /words라는 url에 요청하겠다.
@@ -154,7 +154,6 @@
 
         function listing(texts) {
             // let texts = $('#fileDisplayArea').val();
-            // 
             $.ajax({
                 type: "GET",
                 url: "/words",
@@ -177,6 +176,7 @@
                     }
                 }
             })
+            $('#names-q1').html('');
             // 1. 리뷰 목록을 서버에 요청하기
             $.ajax({
                 type: "GET",
@@ -250,7 +250,7 @@
                     label: chartTitle, // Name the series
                     data: values,
                     backgroundColor: 'rgb(54, 162, 235)',
-                }],
+                }]
             };
             var ctx = document.getElementById("myChart").getContext('2d');
             var myChart = new Chart(ctx, {
@@ -264,15 +264,37 @@
                             scaleLabel: {
                                 display: true,
                                 labelString: ''
-                            }
+                            },
+                            stacked: false
                         }],
                         yAxes: [{
                             scaleLabel: {
                                 display: true,
                                 labelString: ''
-                            }
+                            },
+                            stacked: false
                         }]
                     },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    responsive: true,
+
+                    plugins: {
+                        datalabels: {
+                            align: 'end',
+                            anchor: 'end',
+                            backgroundColor: function (context) {
+                                return context.dataset.backgroundColor;
+                            },
+                            borderRadius: 4,
+                            color: 'white',
+                            formatter: function (value) {
+                                return value;
+                            }
+                        }
+                    }
                 }
             });
             return myChart;
@@ -416,12 +438,12 @@
             <p class="lead">Find out the trend in your word uses on your document!</p>
             <hr class="my-4">
             <p class="lead">
-                <label class="text_1" for="myfile">Start your analysis: </label>
-                <input type="file" onchange="readFile(this)" id="myfile" name="myfile">
+                <label class="text_1" for="myfile">Start your analysis </label>
+                <input type="file" onchange="readFile(this)" id="myfile" name="myfile" accept=".txt,.doc,.docx">
                 <pre id="fileDisplayArea"><pre>
             </p>
         </div>
-        <div class="row">
+        <div class="row" id ="page">
             <div class="col-sm">
                 <table class = "table" id="dataTable">
                     <thead>
