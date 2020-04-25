@@ -40,11 +40,12 @@
     <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
 
     <script>
+        //prepare the document
         $(document).ready(function () {
             $('#fileDisplayArea').html('');
             listing();
         });
-
+        // compute words, word counts, and word percentages
         function wordstat(x) {
             for (let i = 0; i < x.length; i++) {
                 let word = x[i]['word']
@@ -54,29 +55,43 @@
             // return wordlist 
             return x
         }
+        // read the file input
         function readFile(input) {
+            $('#myChart').html('');
+            $('#chartdiv').html('');
+            $('#names-q1').html('');
             let file = input.files[0];
 
             let reader = new FileReader();
 
             reader.readAsText(file);
-            // let texts = $('#fileDisplayArea').val();
 
             reader.onload = function () {
                 let texts = stripHtml(reader.result);
                 console.log(texts)
-                // 위 변수에 저장이 안되는 것
-                // listing();
-                $('#names-q1').html('');
+
+                //prepare the proegress bar to minitor the progress of the function 
+                var bar = new update("#myprogressbar")
+                
+
                 $.ajax({
-                    type: "POST", // POST 방식으로 요청하겠다.
-                    url: "/words", // /words라는 url에 요청하겠다.
-                    data: { write_text: texts }, // 데이터를 주는 방법 'write_text': texts
-                    success: function (response) { // 성공하면
+                    type: "POST", // POST request
+                    url: "/words", // requests to words
+                    data: { write_text: texts }, // data is sent out as 'write_text': texts
+                    complete: function (response) {
+                        bar.finish()
+                    },
+                    success: function (response) {
                         if (response['result'] == 'success') {
+
+                            // return the results whe successful
                             response['result']
+
+                            // log the results on console 
                             console.log(response)
                             let stats = response['stats']
+
+                            // create a table for html
                             for (let i = 0; i < stats.length; i++) {
                                 let word = stats[i]['word']
                                 let word_count = stats[i]['word_count']
@@ -88,9 +103,13 @@
                                 </tr>'
                                 $('#names-q1').append(temp_html);
                             }
+
+                            // prepare the table information for generation bar chart
                             var table = document.getElementById('dataTable');
                             var json = []; // First row needs to be headers 
                             var headers = [];
+
+                            // replace the words with low cases
                             for (var i = 0; i < table.rows[0].cells.length; i++) {
                                 headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi, '');
                             }
@@ -106,42 +125,37 @@
                                 json.push(rowData);
                             }
 
-                            console.log(json);
+                            console.log(json); // log the JSON table on console
 
                             // Map JSON values back to label array
                             var labels = json.map(function (e) {
                                 return e.word;
                             });
-                            console.log(labels); // words
+                            console.log(labels); // log words on console
 
                             // Map JSON values back to values array
                             var values = json.map(function (e) {
                                 return e.frequency;
                             });
-                            console.log(values); // word count
+                            console.log(values); // log the word count on console
+
+                            // Generate bar chart
                             var chart = BuildChart(labels, values, "Word Frequency");
+
+                            // Generate word cloud
                             wordcloud(stats)
-                        }
-                    }
-                })
-                $.ajax({
-                    type: "GET", // POST 방식으로 요청하겠다.
-                    url: "/words", // /words라는 url에 요청하겠다.
-                    data: {}, // 데이터를 주는 방법
-                    success: function (response) { // 성공하면
-                        if (response['result'] == 'success') {
-                            response['result']
                         }
                     }
                 })
             };
 
+            // log the error when an error occurs
             reader.onerror = function () {
                 console.log(reader.error);
             };
         }
 
-
+        // the function to extract texts
         function stripHtml(html) {
             // Create a new div element
             var temporalDivElement = document.createElement("div");
@@ -151,8 +165,9 @@
             return temporalDivElement.textContent || temporalDivElement.innerText || "";
         }
 
-
+        // function to see the texts extracted out of the file
         function listing(texts) {
+
             // let texts = $('#fileDisplayArea').val();
             $.ajax({
                 type: "GET",
@@ -176,72 +191,10 @@
                     }
                 }
             })
-            $('#names-q1').html('');
-            // 1. 리뷰 목록을 서버에 요청하기
-            $.ajax({
-                type: "GET",
-                url: "/words",
-                data: {},
-                success: function (response) {
-                    // 2. 요청 성공 여부 확인하기
-                    if (response['result'] == 'success') {
-                        response['result']
-                        console.log(response)
-                        let stats = response['stats']
-                        for (let i = 0; i < stats.length; i++) {
-                            let word = stats[i]['word']
-                            let word_count = stats[i]['word_count']
-                            let word_percentage = stats[i]['word_percentage']
-                            let temp_html = '<tr>\
-                                  <td>'+ word + '</td>\
-                                  <td>'+ word_count + '</td>\
-                                  <td>'+ word_percentage + '</td>\
-                                </tr>'
-                            $('#names-q1').append(temp_html);
-                        }
-                        var table = document.getElementById('dataTable');
-                        var json = []; // First row needs to be headers 
-                        var headers = [];
-                        for (var i = 0; i < table.rows[0].cells.length; i++) {
-                            headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi, '');
-                        }
-
-                        // Go through cells 
-                        for (var i = 1; i < table.rows.length; i++) {
-                            var tableRow = table.rows[i];
-                            var rowData = {};
-                            for (var j = 0; j < tableRow.cells.length; j++) {
-                                rowData[headers[j]] = tableRow.cells[j].innerHTML;
-                            }
-
-                            json.push(rowData);
-                        }
-
-                        console.log(json);
-
-                        // Map JSON values back to label array
-                        var labels = json.map(function (e) {
-                            return e.word;
-                        });
-                        console.log(labels); // words
-
-                        // Map JSON values back to values array
-                        var values = json.map(function (e) {
-                            return e.frequency;
-                        });
-                        console.log(values); // word count
-                        var chart = BuildChart(labels, values, "Word Frequency");
-                        wordcloud(stats)
-                    } else {
-                        alert('No data has been returned, please check if your data is valid.');
-                    }
-                }
-            })
         }
 
         // bar chart
         //Better to construct options first and then pass it as a parameter
-        // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
 
         function BuildChart(labels, values, chartTitle) {
             var data = {
@@ -300,6 +253,7 @@
             return myChart;
         }
 
+        // the function to run a list of the words, word count, word percentage for word cloud
         function make_list2(x) {
             wordstat(x)
             wordlist = []
@@ -310,12 +264,9 @@
                 let worddict = { "tag": word, "count": word_count }
                 wordlist.push(worddict)
             }
-            // return wordlist.sort(function (a, b){
-            //         return b.word_count - a.word_count
-            //     })
             return wordlist
         }
-
+        // function to generate word cloud
         function wordcloud(x) {
             am4core.ready(function () {
                 // Themes begin
@@ -328,13 +279,7 @@
                 series.randomness = 0.1;
                 series.rotationThreshold = 0.5;
 
-                // wordstat(x)
-                series.data = make_list2(x)
-                // [{
-                //     "tag": word,
-                //     "count": word_count
-
-                // }];
+                series.data = make_list2(x);
 
 
                 series.dataFields.word = "tag";
@@ -363,14 +308,40 @@
                 title.fontWeight = "800";
             });
         }
+
+        // function to update progress bar
+        function update() {
+            var element = document.getElementById("myprogressBar");
+            var width = 1;
+            var identity = setInterval(scene, 10);
+
+            function scene() {
+                if (width >= 100) {
+                    clearInterval(identity);
+                } else {
+                    width++;
+                    element.style.width = width + '%';
+                    element.innerHTML = width * 1 + '%';
+                }
+            }
+            // finish the progress bar if ajax request is completed
+            this.finish = function () {
+                clearInterval(identity);
+                width = 100;
+                element.style.width = width + '%';
+                element.innerHTML = width * 1 + '%';
+            }
+        }
+
     </script>
 
-
+    <!-- style elements for display-->
     <style type="text/css">
+        /* declare the universal font */
         * {
             font-family: 'Stylish', sans-serif;
         }
-
+        /* set the wrapping box to contain contents */
         .wrap {
             width: 80%;
             height: 80%;
@@ -381,31 +352,19 @@
             left: 10%;
             right: 10%;
         }
-
+        /* set the container for banner to indicate what the page is for*/
         .jumbotron {
             color: black;
             font-weight: bold;
             text-align: center;
         }
 
+        /*set the text color for an instruction*/
         .text_1 {
             color: blue;
         }
 
-        .card {
-            top: auto;
-            left: 50%;
-            right: auto;
-            bottom: auto;
-            width: fit-content;
-            height: fit-content;
-        }
-
-        .container {
-            width: 500px;
-            height: 500px;
-        }
-
+        /* set the table frame*/
         table {
             border: 1px solid;
             border-collapse: collapse;
@@ -415,16 +374,30 @@
             bottom: auto;
             right: auto;
         }
-
+        
         td,
         th {
             padding: 1px;
             border: 1px solid;
         }
-
+        /* set the container for word cloud*/
         #chartdiv {
             width: 100%;
             height: 1000px;
+        }
+        /* set the container for progressbar*/
+        #Progress_Status {
+            width: 100%;
+            background-color: #ddd;
+        }
+
+        #myprogressBar {
+            width: 1%;
+            height: 35px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 32px;
+            color: yellow;
         }
     </style>
 
@@ -432,20 +405,30 @@
 </head>
 
 <body>
+    <!-- create the page banner to introduce what the web service is for & instructions of use-->
     <div class="wrap">
         <div class="jumbotron">
             <h1 class="display-4">Word Analyzer</h1>
             <p class="lead">Find out the trend in your word uses on your document!</p>
             <hr class="my-4">
             <p class="lead">
-                <label class="text_1" for="myfile">Start your analysis </label>
-                <input type="file" onchange="readFile(this)" id="myfile" name="myfile" accept=".txt,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-
+                <label class="text_1" for="myfile">Start your analysis below(please insert your plain text file (*.txt)) </label>
+                <br>
+                <label >Please refresh the page for new use</label>
+                <!--set the file input-->
+                <input type="file" onchange="readFile(this)" id="myfile" name="myfile"
+                    accept=".txt,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <!--set the progress bar-->
+                    <div id="Progress_Status">
+                    <div id="myprogressBar"></div>
+                </div>
                 <pre id="fileDisplayArea"><pre>
             </p>
         </div>
-        <div class="row" id ="page">
+        <!--setting the page container tags for outputs-->
+        <div class="row" id ="page" onreset = "update()">
             <div class="col-sm">
+                <!--setting the table tag for output-->
                 <table class = "table" id="dataTable">
                     <thead>
                       <tr>
@@ -458,12 +441,14 @@
                     </tbody>
                   </table>
             </div>
-            <div class="col-sm"> <!--height 2300em, 32000px-->
-                <div class="chart" style="position: relative; height:2000em; width:100%">
+            <!--setting the chart tag for output-->
+            <div class="col-sm"> <!--height 2300em, 32000px max-->
+                <div class="chart" id = "chart_1" style="position: relative; height:2000em; width:100%">
                     <canvas id="myChart"></canvas>
                   </div>
             </div>
             <div class="col-sm">
+                <!--setting the word cloud tag for output-->
                 <div id="chartdiv"></div>
             </div>
           </div>

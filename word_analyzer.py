@@ -1,8 +1,24 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, Response
+
+import sys
+import random, json
+
 from operator import itemgetter
 app = Flask(__name__)
 import numpy as np
 import pandas as pd
+
+# from subprocess import Popen, PIPE
+# from docx import opendocx, getdocumenttext
+#
+# #http://stackoverflow.com/questions/5725278/python-help-using-pdfminer-as-a-library
+# from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+# from pdfminer.converter import TextConverter
+# from pdfminer.layout import LAParams
+# from pdfminer.pdfpage import PDFPage
+# from cStringIO import StringIOÍ
+
+import docx2txt
 
 from pymongo import MongoClient           # pymongo를 임포트 하기(패키지 인스톨 먼저 해야겠죠?)
 client = MongoClient('localhost', 27017)  # mongoDB는 27017 포트로 돌아갑니다.
@@ -24,8 +40,18 @@ def sort_key(d):
 ## API 역할을 하는 부분
 @app.route('/words', methods=['POST'])
 def saving():
-    # read_text = request.form['write_text']
+    # read json + reply
+    # data = request.get_json()
+    # result = ''
+    #
+    # for item in data:
+    #     # loop over every row
+    #     result += str(item['make']) + '\n'
+    #
+    # return result
     read_text = request.form['write_text']
+    # read_text = docx2txt.process(read_text)
+    # print(read_text)
     read_text = read_text.lower()
     # DB에 삽입할 text 만들기
     toRemove = ["/", "-", ".", "~", ":", "&", "=", "-", "*", "!", "(", ")", ",", "\"", "\n"]
