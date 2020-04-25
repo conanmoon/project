@@ -44,7 +44,6 @@
             $('#fileDisplayArea').html('');
             listing();
         });
-
         function wordstat(x) {
             for (let i = 0; i < x.length; i++) {
                 let word = x[i]['word']
@@ -55,6 +54,9 @@
             return x
         }
         function readFile(input) {
+            $('#myChart').html('');
+            $('#chartdiv').html('');
+            $('#names-q1').html('');
             let file = input.files[0];
 
             let reader = new FileReader();
@@ -63,16 +65,23 @@
             // let texts = $('#fileDisplayArea').val();
 
             reader.onload = function () {
+                // var contents = document.getElementById("myfile").innerText;
+                // console.log(contents);
                 let texts = stripHtml(reader.result);
                 console.log(texts)
+
+                var bar = new update("#myprogressbar")
                 // 위 변수에 저장이 안되는 것
                 // listing();
-                $('#names-q1').html('');
+
                 $.ajax({
                     type: "POST", // POST 방식으로 요청하겠다.
                     url: "/words", // /words라는 url에 요청하겠다.
                     data: { write_text: texts }, // 데이터를 주는 방법 'write_text': texts
-                    success: function (response) { // 성공하면
+                    complete: function (response) {
+                        bar.finish()
+                    },
+                    success: function (response) {
                         if (response['result'] == 'success') {
                             response['result']
                             console.log(response)
@@ -124,16 +133,16 @@
                         }
                     }
                 })
-                $.ajax({
-                    type: "GET", // POST 방식으로 요청하겠다.
-                    url: "/words", // /words라는 url에 요청하겠다.
-                    data: {}, // 데이터를 주는 방법
-                    success: function (response) { // 성공하면
-                        if (response['result'] == 'success') {
-                            response['result']
-                        }
-                    }
-                })
+                // $.ajax({
+                //     type: "GET", // POST 방식으로 요청하겠다.
+                //     url: "/words", // /words라는 url에 요청하겠다.
+                //     data: {}, // 데이터를 주는 방법
+                //     success: function (response) { // 성공하면
+                //         if (response['result'] == 'success') {
+                //             response['result']
+                //         }
+                //     }
+                // })
             };
 
             reader.onerror = function () {
@@ -151,8 +160,8 @@
             return temporalDivElement.textContent || temporalDivElement.innerText || "";
         }
 
-
         function listing(texts) {
+
             // let texts = $('#fileDisplayArea').val();
             $.ajax({
                 type: "GET",
@@ -173,67 +182,6 @@
                         oReq.open("GET", "/words");
                         oReq.send();
 
-                    }
-                }
-            })
-            $('#names-q1').html('');
-            // 1. 리뷰 목록을 서버에 요청하기
-            $.ajax({
-                type: "GET",
-                url: "/words",
-                data: {},
-                success: function (response) {
-                    // 2. 요청 성공 여부 확인하기
-                    if (response['result'] == 'success') {
-                        response['result']
-                        console.log(response)
-                        let stats = response['stats']
-                        for (let i = 0; i < stats.length; i++) {
-                            let word = stats[i]['word']
-                            let word_count = stats[i]['word_count']
-                            let word_percentage = stats[i]['word_percentage']
-                            let temp_html = '<tr>\
-                                  <td>'+ word + '</td>\
-                                  <td>'+ word_count + '</td>\
-                                  <td>'+ word_percentage + '</td>\
-                                </tr>'
-                            $('#names-q1').append(temp_html);
-                        }
-                        var table = document.getElementById('dataTable');
-                        var json = []; // First row needs to be headers 
-                        var headers = [];
-                        for (var i = 0; i < table.rows[0].cells.length; i++) {
-                            headers[i] = table.rows[0].cells[i].innerHTML.toLowerCase().replace(/ /gi, '');
-                        }
-
-                        // Go through cells 
-                        for (var i = 1; i < table.rows.length; i++) {
-                            var tableRow = table.rows[i];
-                            var rowData = {};
-                            for (var j = 0; j < tableRow.cells.length; j++) {
-                                rowData[headers[j]] = tableRow.cells[j].innerHTML;
-                            }
-
-                            json.push(rowData);
-                        }
-
-                        console.log(json);
-
-                        // Map JSON values back to label array
-                        var labels = json.map(function (e) {
-                            return e.word;
-                        });
-                        console.log(labels); // words
-
-                        // Map JSON values back to values array
-                        var values = json.map(function (e) {
-                            return e.frequency;
-                        });
-                        console.log(values); // word count
-                        var chart = BuildChart(labels, values, "Word Frequency");
-                        wordcloud(stats)
-                    } else {
-                        alert('No data has been returned, please check if your data is valid.');
                     }
                 }
             })
@@ -363,6 +311,35 @@
                 title.fontWeight = "800";
             });
         }
+
+        function update() {
+            var element = document.getElementById("myprogressBar");
+            var width = 1;
+            var identity = setInterval(scene, 10);
+
+            function scene() {
+                if (width >= 100) {
+                    clearInterval(identity);
+                } else {
+                    width++;
+                    element.style.width = width + '%';
+                    element.innerHTML = width * 1 + '%';
+                }
+            }
+
+            this.finish = function () {
+                clearInterval(identity);
+                width = 100;
+                element.style.width = width + '%';
+                element.innerHTML = width * 1 + '%';
+            }
+        }
+
+        function removeData() {
+            $('#dataTable').html('');
+            $('#myChart').html('');
+            $('#chartdiv').html('');
+        }
     </script>
 
 
@@ -426,6 +403,20 @@
             width: 100%;
             height: 1000px;
         }
+
+        #Progress_Status {
+            width: 100%;
+            background-color: #ddd;
+        }
+
+        #myprogressBar {
+            width: 1%;
+            height: 35px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 32px;
+            color: yellow;
+        }
     </style>
 
 
@@ -438,12 +429,18 @@
             <p class="lead">Find out the trend in your word uses on your document!</p>
             <hr class="my-4">
             <p class="lead">
-                <label class="text_1" for="myfile">Start your analysis </label>
-                <input type="file" onchange="readFile(this)" id="myfile" name="myfile" accept=".txt,.doc,.docx">
+                <label class="text_1" for="myfile">Start your analysis below(please insert your plain text file (*.txt)) </label>
+                <br>
+                <label >Please refresh the page for new use</label>
+                <input type="file" onchange="readFile(this)" id="myfile" name="myfile"
+                    accept=".txt,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <div id="Progress_Status">
+                    <div id="myprogressBar"></div>
+                </div>
                 <pre id="fileDisplayArea"><pre>
             </p>
         </div>
-        <div class="row" id ="page">
+        <div class="row" id ="page" onreset = "update()">
             <div class="col-sm">
                 <table class = "table" id="dataTable">
                     <thead>
@@ -458,7 +455,7 @@
                   </table>
             </div>
             <div class="col-sm"> <!--height 2300em, 32000px-->
-                <div class="chart" style="position: relative; height:2000em; width:100%">
+                <div class="chart" id = "chart_1" style="position: relative; height:2000em; width:100%">
                     <canvas id="myChart"></canvas>
                   </div>
             </div>
